@@ -1,8 +1,7 @@
-import init, { WasmUniverse as Universe } from "wasm-hello-world/wasm_hello_world";
+import init, { parallel_tokenize } from "wasm-hello-world/wasm_hello_world";
 
 await init();
 
-const universe = Universe.new(800, 600);
+const tokens = parallel_tokenize(["=1+1", '="coucou" + 10']);
 
-console.log(universe.get_area())
-console.log(universe.get_area_object())
+console.log(tokens)

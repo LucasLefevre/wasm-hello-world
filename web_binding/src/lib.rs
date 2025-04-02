@@ -1,4 +1,4 @@
-mod universe;
+mod wasm_tokenizer;
 
 #[wasm_bindgen]
 extern "C" {
