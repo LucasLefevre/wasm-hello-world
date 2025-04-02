@@ -1,0 +1,8 @@
+/target
+**/*.rs.bk
+Cargo.lock
+bin/
+pkg/
+wasm-pack.log
+web_binding/web/node_modules
+web_binding/web/build

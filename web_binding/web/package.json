@@ -1,0 +1,25 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "build": "npm run build:rust && tsc --outDir build/js && rollup -c",
+    "build:rust": "wasm-pack build --target web",
+    "start": "npm run build && cp ../pkg/wasm_hello_world_bg.wasm build/bundle/wasm_hello_world_bg.wasm && live-server --open=src --port=8080 --watch=build/bundle"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wasm-hello-world": "file:../pkg"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-wasm": "^6.2.2",
+    "live-server": "^1.2.2",
+    "rollup": "^4.35.0",
+    "typescript": "^5.8.2"
+  }
+}
