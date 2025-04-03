@@ -1,4 +1,5 @@
-use tokenizer::tokenizer::{parallel_tokenize, tokenize};
+use js_sys::Uint8Array;
+use tokenizer::tokenizer::{encode_tokens_to_bytes, parallel_tokenize, tokenize};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 extern crate console_error_panic_hook;
@@ -16,6 +17,14 @@ pub fn wasm_batch_tokenize(inputs: Vec<String>) -> Result<JsValue, serde_wasm_bi
     set_panic_hook();
     let tokens: Vec<_> = inputs.into_iter().map(|f| tokenize(&f)).collect();
     serde_wasm_bindgen::to_value(&tokens)
+}
+
+#[wasm_bindgen]
+pub fn wasm_buffer_batch_tokenize(inputs: Vec<String>) -> Uint8Array {
+    set_panic_hook();
+    let tokens_vec: Vec<_> = inputs.into_iter().map(|f| tokenize(&f)).collect();
+    let mut buffer = encode_tokens_to_bytes(tokens_vec);
+    unsafe { Uint8Array::view_mut_raw(buffer.as_mut_ptr(), buffer.len()) }
 }
 
 #[wasm_bindgen]

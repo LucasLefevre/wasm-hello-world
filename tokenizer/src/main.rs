@@ -18,7 +18,7 @@ fn main() {
 // const tokenize = o_spreadsheet.tokenize;
 // const inputs = [];
 // for (let i = 0; i < 100000; i++) {
-//     inputs.push("=1.2+10+\"abc\"");
+//     inputs.push("=10+\"abc\"");
 // }
 // const start = Date.now();
 // const tokens = inputs.map((f) => tokenize(f));

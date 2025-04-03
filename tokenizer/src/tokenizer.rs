@@ -6,26 +6,26 @@ use regex::Regex;
 use serde::Serialize;
 
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum TokenType {
-    Operator,
-    Number,
-    String,
-    Symbol,
-    Space,
-    Debugger,
-    ArgSeparator,
-    LeftParen,
-    RightParen,
-    Reference,
-    InvalidReference,
-    Unknown,
+    Operator=1,
+    Number=2,
+    String=3,
+    Symbol=4,
+    Space=5,
+    Debugger=6,
+    ArgSeparator=7,
+    LeftParen=8,
+    RightParen=9,
+    Reference=10,
+    InvalidReference=11,
+    Unknown=12,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Token {
-    token_type: TokenType,
-    value: String,
+    pub token_type: TokenType,
+    pub value: String,
 }
 
 pub struct TokenizingChars<'a> {
@@ -118,6 +118,24 @@ pub fn tokenize(formula: &str) -> Vec<Token> {
         }
     }
     tokens
+}
+
+pub fn encode_tokens_to_bytes(tokens_vec: Vec<Vec<Token>>) -> Vec<u8> {
+    let number_of_tokens = tokens_vec.iter().map(|tokens| tokens.len()).sum::<usize>();
+    let mut buffer = vec![0; number_of_tokens*2 + tokens_vec.len() +1];
+
+    let mut processed_inputs = 0;
+    for tokens in tokens_vec.iter() {
+        for (i, token) in tokens.iter().enumerate() {
+            let start = processed_inputs + 2*i;
+            buffer[start] = token.token_type as u8;
+            buffer[start+1] = token.value.len() as u8;
+        }
+        processed_inputs += tokens.len()*2;
+        buffer[processed_inputs] = 0;
+        processed_inputs += 1;
+    }
+    buffer
 }
 
 fn tokenize_space(chars: &mut TokenizingChars) -> Option<Token> {
