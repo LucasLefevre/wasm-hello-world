@@ -55,9 +55,9 @@ impl<'a> TokenizingChars<'a> {
     }
 
     pub fn advance_by(&mut self, n: usize) {
-        // careful about unicode special characters!
         self.index += n;
-        self.input = &self.input[n..];
+        let skip = self.input.chars().take(n).map(|c| c.len_utf8()).sum::<usize>();
+        self.input = &self.input[skip..];
         self.current = self.input.chars().next();
     }
 
@@ -156,8 +156,11 @@ fn tokenize_space(chars: &mut TokenizingChars) -> Option<Token> {
 fn tokenize_operator(chars: &mut TokenizingChars) -> Option<Token> {
     for op in OPERATORS.into_iter() {
         let len = op.len();
-        let remaining = chars.remaining();
-        if remaining.len() >= len && op == &remaining[..len] {
+        // println!("{:?}", len);
+        // println!("{:?}", remaining);
+        // println!("{:?}", remaining.len());
+        // this is sub-optimal
+        if chars.current_starts_with(op) {
             chars.advance_by(len);
             return Some(Token {
                 token_type: TokenType::Operator,

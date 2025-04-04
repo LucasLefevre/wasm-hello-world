@@ -1,18 +1,18 @@
 use tokenizer::tokenizer::{parallel_tokenize, tokenize};
 
 fn main() {
-    let inputs = vec!["=1.2+10+\"abc\""; 100_000]
-        .iter()
-        .map(|f| f.to_string())
-        .collect();
+    // let inputs = vec!["=1.2+10+\"abc\""; 100_000]
+    //     .iter()
+    //     .map(|f| f.to_string())
+    //     .collect();
 
-    let start = std::time::Instant::now();
+    // let start = std::time::Instant::now();
 
-    let tokens = parallel_tokenize(inputs);
+    // let tokens = parallel_tokenize(inputs);
 
-    println!("n: {:?}", tokens.len());
-    println!("time: {:?}", start.elapsed());
-    println!("tokens: {:?}", tokenize("=1.2+10"));
+    // println!("n: {:?}", tokens.len());
+    // println!("time: {:?}", start.elapsed());
+    println!("tokens: {:?}", tokenize("€"));
 }
 
 // const tokenize = o_spreadsheet.tokenize;
