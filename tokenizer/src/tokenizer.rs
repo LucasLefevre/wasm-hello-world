@@ -339,37 +339,3 @@ fn tokenize_symbol(chars: &mut TokenizingChars) -> Option<Token> {
 
     None
 }
-
-fn tokenize_quoted_symbol(chars: &mut TokenizingChars) -> Option<Token> {
-    let mut result = String::new();
-    let mut last_char = chars.shift();
-    if let Some(c) = last_char {
-        result.push(c);
-    }
-
-    while let Some(c) = chars.current {
-        last_char = chars.shift();
-        result.push(c);
-        if let Some(c) = last_char {
-            result.push(c);
-            if c == '\'' {
-                if chars.current == Some('\'') {
-                    last_char = chars.shift();
-                    if let Some(c2) = last_char {
-                        result.push(c2);
-                    }
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-
-    if last_char != Some('\'') {
-        return Some(Token {
-            token_type: TokenType::Symbol,
-            value: result,
-        });
-    }
-    None
-}
