@@ -1,4 +1,4 @@
-use std::{sync::Arc, thread::{self, JoinHandle}};
+use std::{collections::HashSet, sync::Arc, thread::{self, JoinHandle}};
 
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -72,7 +72,7 @@ const OPERATORS: [&str; 12] = [
 
 pub fn parallel_tokenize(inputs: Vec<String>) -> Vec<Vec<Token>> {
     let formulas: Arc<Vec<String>> = Arc::from(inputs);
-    let num_threads = 10;
+    let num_threads = 4;
     let chunk_size = formulas.len() / num_threads;
 
     let mut handles: Vec<JoinHandle<_>> = vec![];
@@ -252,8 +252,10 @@ fn tokenize_invalid_range(chars: &mut TokenizingChars) -> Option<Token> {
 
 static RE: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"(?:^-?\d+(?:\.?\d*(?:e\d+)?)?|^-?\.\d+)").unwrap());
-// static RE: Lazy<Regex> = Lazy::new(||Regex::new(r"(?:^-?\d+(?:\.?\d*(?:e\d+)?)?|^-?\.\d+)(?!\w|!)").unwrap());
-
+    // static RE: Lazy<Regex> = Lazy::new(||Regex::new(r"(?:^-?\d+(?:\.?\d*(?:e\d+)?)?|^-?\.\d+)(?!\w|!)").unwrap());
+    
+static RANGE_RE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^\s*('.+'!|[^']+!)?(\$?([A-Z]{1,3})\$?([0-9]{1,7})|(\$?[A-Z]{1,3})?\$?[0-9]{1,7}\s*:\s*(\$?[A-Z]{1,3})?\$?[0-9]{1,7}\s*|\$?[A-Z]{1,3}(\$?[0-9]{1,7})?\s*:\s*\$?[A-Z]{1,3}(\$?[0-9]{1,7})?\s*)$").unwrap());
 fn tokenize_number(chars: &mut TokenizingChars) -> Option<Token> {
     match chars.current {
         // first check if the first character is valid
@@ -271,18 +273,103 @@ fn tokenize_number(chars: &mut TokenizingChars) -> Option<Token> {
         _ => None,
     }
 }
+static SYMBOL_CHARS: Lazy<HashSet<char>> = Lazy::new(|| {
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.!$"
+        .chars()
+        .collect()
+});
 
 fn tokenize_symbol(chars: &mut TokenizingChars) -> Option<Token> {
-    match chars.current {
-        Some('\'') => {
-            return tokenize_quoted_symbol(chars)
+    let mut result = String::new();
+
+    // Case 1: starts with a single quote
+    if chars.current == Some('\'') {
+        let mut last_char = chars.shift();
+        if let Some(c) = last_char {
+            result.push(c);
         }
-        _ => {
-            None
-        },
+
+        while let Some(_c) = chars.current {
+            last_char = chars.shift();
+            if let Some(c) = last_char {
+                result.push(c);
+                if c == '\'' {
+                    if chars.current == Some('\'') {
+                        last_char = chars.shift();
+                        if let Some(c2) = last_char {
+                            result.push(c2);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if last_char != Some('\'') {
+            return Some(Token {
+                token_type: TokenType::Unknown,
+                value: result,
+            });
+        }
     }
+
+    // Case 2: symbol characters or unicode symbol
+    while let Some(c) = chars.current {
+        if SYMBOL_CHARS.contains(&c) {
+            result.push(chars.shift().unwrap());
+        } else {
+            break;
+        }
+    }
+
+    if !result.is_empty() {
+        let is_reference = RANGE_RE.is_match(&result);
+        if is_reference {
+            return Some(Token {
+                token_type: TokenType::Reference,
+                value: result,
+            });
+        }
+        return Some(Token {
+            token_type: TokenType::Symbol,
+            value: result,
+        });
+    }
+
+    None
 }
 
 fn tokenize_quoted_symbol(chars: &mut TokenizingChars) -> Option<Token> {
+    let mut result = String::new();
+    let mut last_char = chars.shift();
+    if let Some(c) = last_char {
+        result.push(c);
+    }
+
+    while let Some(c) = chars.current {
+        last_char = chars.shift();
+        result.push(c);
+        if let Some(c) = last_char {
+            result.push(c);
+            if c == '\'' {
+                if chars.current == Some('\'') {
+                    last_char = chars.shift();
+                    if let Some(c2) = last_char {
+                        result.push(c2);
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    if last_char != Some('\'') {
+        return Some(Token {
+            token_type: TokenType::Symbol,
+            value: result,
+        });
+    }
     None
 }
