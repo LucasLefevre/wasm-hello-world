@@ -12,7 +12,7 @@ fn main() {
 
     // println!("n: {:?}", tokens.len());
     // println!("time: {:?}", start.elapsed());
-    println!("tokens: {:?}", tokenize("€"));
+    println!("tokens: {:?}", tokenize("=#REF"));
 }
 
 // const tokenize = o_spreadsheet.tokenize;

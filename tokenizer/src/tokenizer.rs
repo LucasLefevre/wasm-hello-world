@@ -241,6 +241,7 @@ fn tokenize_debugger(chars: &mut TokenizingChars) -> Option<Token> {
 
 fn tokenize_invalid_range(chars: &mut TokenizingChars) -> Option<Token> {
     if chars.current_starts_with("#REF") {
+        chars.advance_by(4);
         return Some(Token {
             token_type: TokenType::InvalidReference,
             value: "#REF".to_string(),
